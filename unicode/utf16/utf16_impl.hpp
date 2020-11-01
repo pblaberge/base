@@ -18,24 +18,23 @@ constexpr rune kSurrogate3 = 0xE000;
 constexpr rune kSurrogateSelf = 0x10000;
 
 constexpr bool IsSurrogate(rune r) {
-    return kSurrogate1 <= r && r < kSurrogate3;
+  return kSurrogate1 <= r && r < kSurrogate3;
 }
 
 constexpr rune DecodeRune(rune r1, rune r2) {
-    if (kSurrogate1 <= r1 && r1 < kSurrogate2 && kSurrogate2 <= r2 &&
-        r2 < kSurrogate3) {
-        return ((r1 - kSurrogate1) << 10) |
-               ((r2 - kSurrogate2) + kSurrogateSelf);
-    }
-    return kReplacementChar;
+  if (kSurrogate1 <= r1 && r1 < kSurrogate2 && kSurrogate2 <= r2 &&
+      r2 < kSurrogate3) {
+    return ((r1 - kSurrogate1) << 10) | ((r2 - kSurrogate2) + kSurrogateSelf);
+  }
+  return kReplacementChar;
 }
 
 constexpr pair<rune, rune> EncodeRune(rune r) {
-    if (r < kSurrogateSelf || r > kMaxRune) {
-        return {kReplacementChar, kReplacementChar};
-    }
-    r -= kSurrogateSelf;
-    return {kSurrogate1 + (r >> 10) & 0x3ff, kSurrogate2 + r & 0x3ff};
+  if (r < kSurrogateSelf || r > kMaxRune) {
+    return {kReplacementChar, kReplacementChar};
+  }
+  r -= kSurrogateSelf;
+  return {kSurrogate1 + (r >> 10) & 0x3ff, kSurrogate2 + r & 0x3ff};
 }
 
 }  // namespace utf16

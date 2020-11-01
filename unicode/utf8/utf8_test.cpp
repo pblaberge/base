@@ -7,8 +7,8 @@ namespace unicode {
 namespace utf8 {
 
 struct Utf8Map {
-    rune r;
-    string str;
+  rune r;
+  string str;
 };
 
 std::array<Utf8Map const, 32> const utf8map = {{
@@ -118,8 +118,8 @@ std::array<string, 37> invalidSequenceTests = {{
 }};
 
 struct RuneCountTest {
-    std::string_view in;
-    int32 out;
+  std::string_view in;
+  int32 out;
 };
 
 std::array<RuneCountTest, 6> runecounttests = {{
@@ -132,8 +132,8 @@ std::array<RuneCountTest, 6> runecounttests = {{
 }};
 
 struct RuneLenTest {
-    rune r;
-    int32 size;
+  rune r;
+  int32 size;
 };
 
 std::array<RuneLenTest, 10> runelentests = {{
@@ -150,8 +150,8 @@ std::array<RuneLenTest, 10> runelentests = {{
 }};
 
 struct ValidTest {
-    std::string_view in;
-    bool out;
+  std::string_view in;
+  bool out;
 };
 
 std::array<char, 2> valid_bytes_0{66, static_cast<char>(250)};
@@ -179,8 +179,8 @@ std::array<ValidTest, 18> validTests = {{
 }};
 
 struct ValidRuneTest {
-    rune r;
-    bool ok;
+  rune r;
+  bool ok;
 };
 
 std::array<ValidRuneTest, 12> validrunetests = {{
@@ -199,322 +199,302 @@ std::array<ValidRuneTest, 12> validrunetests = {{
 }};
 
 TEST(utf8, TestFullRune) {
-    for (Utf8Map const& m : utf8map) {
-        span<uint8 const> const b{m.str.Data(),
-                                  m.str.Size()};
-        if (!FullRune(b)) {
-            FAIL() << "FullRune(" << m.str << ") (" << m.r
-                   << ") = false, want true";
-        }
-        string_view const s{m.str.Data(),
-                            m.str.Size()};
-        if (!FullRuneInString(s)) {
-            FAIL() << "FullRuneInString(" << m.str << ") (" << m.r
-                   << ") = false, want true";
-        }
+  for (Utf8Map const& m : utf8map) {
+    span<uint8 const> const b{m.str.Data(), m.str.Size()};
+    if (!FullRune(b)) {
+      FAIL() << "FullRune(" << m.str << ") (" << m.r << ") = false, want true";
     }
-    for (std::string const& str : std::array<std::string, 2>{"\xc0", "\xc1"}) {
-        span<uint8 const> const b{reinterpret_cast<uint8 const*>(str.c_str()),
-                                  str.size()};
-        if (!FullRune(b)) {
-            FAIL() << "FullRune(" << str << ") = false, want true";
-        }
-        string_view const s{reinterpret_cast<uint8 const*>(str.c_str()),
-                            str.size()};
-        if (!FullRuneInString(s)) {
-            FAIL() << "FullRuneInString(" << str << ") = false, want true";
-        }
+    string_view const s{m.str.Data(), m.str.Size()};
+    if (!FullRuneInString(s)) {
+      FAIL() << "FullRuneInString(" << m.str << ") (" << m.r
+             << ") = false, want true";
     }
+  }
+  for (std::string const& str : std::array<std::string, 2>{"\xc0", "\xc1"}) {
+    span<uint8 const> const b{reinterpret_cast<uint8 const*>(str.c_str()),
+                              str.size()};
+    if (!FullRune(b)) {
+      FAIL() << "FullRune(" << str << ") = false, want true";
+    }
+    string_view const s{reinterpret_cast<uint8 const*>(str.c_str()),
+                        str.size()};
+    if (!FullRuneInString(s)) {
+      FAIL() << "FullRuneInString(" << str << ") = false, want true";
+    }
+  }
 }
 
 TEST(utf8, TestEncodeRune) {
-    for (uint64 i = 0; i < utf8map.size(); ++i) {
-        Utf8Map const& m = utf8map[i];
-        span<uint8 const> const b{m.str.Data(),
-                                  m.str.Size()};
-        std::array<uint8, 10> buf;
-        int32 const n = EncodeRune({buf.data(), buf.size()}, m.r);
-        span<uint8> b1{buf.data(), static_cast<uint64>(n)};
-        ASSERT_EQ(b.size(), b1.size());
-        if (b != b1) {
-            FAIL() << "EncodeRune(" << m.r << ") failed for [" << i << "]";
-        }
+  for (uint64 i = 0; i < utf8map.size(); ++i) {
+    Utf8Map const& m = utf8map[i];
+    span<uint8 const> const b{m.str.Data(), m.str.Size()};
+    std::array<uint8, 10> buf;
+    int32 const n = EncodeRune({buf.data(), buf.size()}, m.r);
+    span<uint8> b1{buf.data(), static_cast<uint64>(n)};
+    ASSERT_EQ(b.size(), b1.size());
+    if (b != b1) {
+      FAIL() << "EncodeRune(" << m.r << ") failed for [" << i << "]";
     }
+  }
 }
 
 TEST(utf8, TestDecodeRune) {
-    for (Utf8Map const& m : utf8map) {
-        {
-            span<uint8 const> const b{
-                m.str.Data(), m.str.Size()};
-            {
-                auto const [r, size] = DecodeRune(b);
-                if (r != m.r || size != b.size()) {
-                    FAIL() << "DecodeRune(" << m.str << " = " << r << ", "
-                           << size << " want " << r << ", " << b.size();
-                }
-            }
-
-            {
-                string_view const s{
-                    m.str.Data(), m.str.Size()};
-                auto const [r, size] = DecodeRuneInString(s);
-                if (r != m.r || size != s.size()) {
-                    FAIL() << "DecodeRuneInString(" << m.str << " = " << r
-                           << ", " << size << " want " << r << ", " << s.size();
-                }
-            }
+  for (Utf8Map const& m : utf8map) {
+    {
+      span<uint8 const> const b{m.str.Data(), m.str.Size()};
+      {
+        auto const [r, size] = DecodeRune(b);
+        if (r != m.r || size != b.size()) {
+          FAIL() << "DecodeRune(" << m.str << " = " << r << ", " << size
+                 << " want " << r << ", " << b.size();
         }
+      }
 
-        {
-            // there's an extra byte that bytes left behind - make sure trailing
-            // byte works
-            span<uint8 const> const b{
-                m.str.Data(), m.str.Size() + 1};
-            {
-                auto const [r, size] = DecodeRune(b);
-                if (r != m.r || size != (b.size() - 1)) {
-                    FAIL() << "DecodeRune(" << m.str << " = " << r << ", "
-                           << size << " want " << r << ", " << b.size();
-                }
-            }
-
-            string_view const s{m.str.Data(),
-                                m.str.Size() + 1};
-            auto const [r, size] = DecodeRuneInString(s);
-            if (r != m.r || size != b.size() - 1) {
-                FAIL() << "DecodeRuneInString(" << m.str << " = " << r << ", "
-                       << size << " want " << r << ", " << s.size();
-            }
-        }
-
-        std::vector<uint8> b{m.str.begin(), m.str.end()};
-        // make sure missing bytes fail
-        int8 wantsize = 1;
-        if (wantsize >= b.size()) {
-            wantsize = 0;
-        }
-        {
-            auto const [r, size] = DecodeRune({b.data(), b.size() - 1});
-            if (r != kRuneError || size != wantsize) {
-                FAIL() << "DecodeRune(" << m.str << " = " << r << ", " << size
-                       << " want " << kRuneError << ", " << wantsize;
-            }
-        }
-        {
-            string_view const s{m.str.Data(),
-                                m.str.Size() - 1};
-
-            auto const [r, size] = DecodeRuneInString(s);
-            if (r != kRuneError || size != wantsize) {
-                FAIL() << "DecodeRuneInString(" << m.str << " = " << r << ", "
-                       << size << " want " << kRuneError << ", " << wantsize;
-            }
-        }
-
-        // make sure bad sequences fail
-        if (b.size() == 1) {
-            b[0] = 0x80;
-        } else {
-            b[b.size() - 1] = 0x7F;
-        }
-        {
-            auto const [r, size] = DecodeRune({b.data(), b.size()});
-            if (r != kRuneError || size != 1) {
-                FAIL() << "DecodeRune(" << m.str << " = " << r << ", " << size
-                       << " want " << kRuneError << ", " << 1;
-            }
-        }
-
-        string_view s{b.data(), b.size()};
+      {
+        string_view const s{m.str.Data(), m.str.Size()};
         auto const [r, size] = DecodeRuneInString(s);
-        if (r != kRuneError || size != 1) {
-            FAIL() << "DecodeRuneInString(" << m.str << " = " << r << ", "
-                   << size << " want " << kRuneError << ", " << 1;
+        if (r != m.r || size != s.size()) {
+          FAIL() << "DecodeRuneInString(" << m.str << " = " << r << ", " << size
+                 << " want " << r << ", " << s.size();
         }
+      }
     }
+
+    {
+      // there's an extra byte that bytes left behind - make sure trailing
+      // byte works
+      span<uint8 const> const b{m.str.Data(), m.str.Size() + 1};
+      {
+        auto const [r, size] = DecodeRune(b);
+        if (r != m.r || size != (b.size() - 1)) {
+          FAIL() << "DecodeRune(" << m.str << " = " << r << ", " << size
+                 << " want " << r << ", " << b.size();
+        }
+      }
+
+      string_view const s{m.str.Data(), m.str.Size() + 1};
+      auto const [r, size] = DecodeRuneInString(s);
+      if (r != m.r || size != b.size() - 1) {
+        FAIL() << "DecodeRuneInString(" << m.str << " = " << r << ", " << size
+               << " want " << r << ", " << s.size();
+      }
+    }
+
+    std::vector<uint8> b{m.str.begin(), m.str.end()};
+    // make sure missing bytes fail
+    int8 wantsize = 1;
+    if (wantsize >= b.size()) {
+      wantsize = 0;
+    }
+    {
+      auto const [r, size] = DecodeRune({b.data(), b.size() - 1});
+      if (r != kRuneError || size != wantsize) {
+        FAIL() << "DecodeRune(" << m.str << " = " << r << ", " << size
+               << " want " << kRuneError << ", " << wantsize;
+      }
+    }
+    {
+      string_view const s{m.str.Data(), m.str.Size() - 1};
+
+      auto const [r, size] = DecodeRuneInString(s);
+      if (r != kRuneError || size != wantsize) {
+        FAIL() << "DecodeRuneInString(" << m.str << " = " << r << ", " << size
+               << " want " << kRuneError << ", " << wantsize;
+      }
+    }
+
+    // make sure bad sequences fail
+    if (b.size() == 1) {
+      b[0] = 0x80;
+    } else {
+      b[b.size() - 1] = 0x7F;
+    }
+    {
+      auto const [r, size] = DecodeRune({b.data(), b.size()});
+      if (r != kRuneError || size != 1) {
+        FAIL() << "DecodeRune(" << m.str << " = " << r << ", " << size
+               << " want " << kRuneError << ", " << 1;
+      }
+    }
+
+    string_view s{b.data(), b.size()};
+    auto const [r, size] = DecodeRuneInString(s);
+    if (r != kRuneError || size != 1) {
+      FAIL() << "DecodeRuneInString(" << m.str << " = " << r << ", " << size
+             << " want " << kRuneError << ", " << 1;
+    }
+  }
 }
 
 TEST(utf8, TestDecodeSurrogateRune) {
-    for (Utf8Map const& m : surrogateMap) {
-        span<uint8 const> const b{m.str.Data(),
-                                  m.str.Size()};
-        {
-            auto const [r, size] = DecodeRune(b);
-            if (r != kRuneError || size != 1) {
-                FAIL() << "DecodeRune(" << m.str << " = " << r << ", " << size
-                       << " want " << kRuneError << ", " << 1;
-            }
-        }
-        string_view const s{m.str.Data(),
-                            m.str.Size()};
-        auto const [r, size] = DecodeRuneInString(s);
-        if (r != kRuneError || size != 1) {
-            FAIL() << "DecodeRuneInString(" << m.str << " = " << r << ", "
-                   << size << " want " << kRuneError << ", " << 1;
-        }
+  for (Utf8Map const& m : surrogateMap) {
+    span<uint8 const> const b{m.str.Data(), m.str.Size()};
+    {
+      auto const [r, size] = DecodeRune(b);
+      if (r != kRuneError || size != 1) {
+        FAIL() << "DecodeRune(" << m.str << " = " << r << ", " << size
+               << " want " << kRuneError << ", " << 1;
+      }
     }
+    string_view const s{m.str.Data(), m.str.Size()};
+    auto const [r, size] = DecodeRuneInString(s);
+    if (r != kRuneError || size != 1) {
+      FAIL() << "DecodeRuneInString(" << m.str << " = " << r << ", " << size
+             << " want " << kRuneError << ", " << 1;
+    }
+  }
 }
 
 void testSequence(string_view s) {
-    struct info {
-        int32 index;
-        rune r;
-    };
+  struct info {
+    int32 index;
+    rune r;
+  };
 
-    std::vector<info> index{s.size()};
-    span<uint8 const> const b{reinterpret_cast<uint8 const*>(s.data()),
-                              s.size()};
-    int32 si = 0;
-    int32 j = 0;
+  std::vector<info> index{s.size()};
+  span<uint8 const> const b{reinterpret_cast<uint8 const*>(s.data()), s.size()};
+  int32 si = 0;
+  int32 j = 0;
 
-    string_view s0 = s;
+  string_view s0 = s;
 
-    while (!s0.empty()) {
-        auto [r, i] = DecodeRune(s0);
-        index[j] = info{si, r};
-        si += i;
-        ++j;
-        s0 = s0.substr(i);
+  while (!s0.empty()) {
+    auto [r, i] = DecodeRune(s0);
+    index[j] = info{si, r};
+    si += i;
+    ++j;
+    s0 = s0.substr(i);
+  }
+  --j;
+  for (si = s.size(); si > 0;) {
+    auto [r1, size1] = DecodeLastRune(b.subspan(0, si));
+    if (r1 != index[j].r) {
+      FAIL() << "DecodeLastRune(" << std::string{s.begin(), s.end()} << ", "
+             << si << ") = " << r1 << ", want " << index[j].r;
+      return;
+    }
+    si -= size1;
+    if (si != index[j].index) {
+      FAIL() << "DecodeLastRune(" << std::string{s.begin(), s.end()}
+             << ") index mismatch at " << si << ", want " << index[j].index;
+      return;
     }
     --j;
-    for (si = s.size(); si > 0;) {
-        auto [r1, size1] = DecodeLastRune(b.subspan(0, si));
-        if (r1 != index[j].r) {
-            FAIL() << "DecodeLastRune(" << std::string{s.begin(), s.end()}
-                   << ", " << si << ") = " << r1 << ", want " << index[j].r;
-            return;
-        }
-        si -= size1;
-        if (si != index[j].index) {
-            FAIL() << "DecodeLastRune(" << std::string{s.begin(), s.end()}
-                   << ") index mismatch at " << si << ", want "
-                   << index[j].index;
-            return;
-        }
-        --j;
-    }
-    if (si != 0) {
-        FAIL() << "DecodeLastRune(" << std::string{s.begin(), s.end()}
-               << ") finished at " << si << ", not 0";
-    }
+  }
+  if (si != 0) {
+    FAIL() << "DecodeLastRune(" << std::string{s.begin(), s.end()}
+           << ") finished at " << si << ", not 0";
+  }
 }
 
 TEST(utf8, TestSequencing) {
-    for (string const& ts : testStrings) {
-        for (Utf8Map const& m : utf8map) {
-            for (string const& s : std::array<string, 3>{
-                     ts + m.str, m.str + ts, ts + m.str + ts}) {
-                testSequence(
-                    {s.Data(), s.Size()});
-            }
-        }
+  for (string const& ts : testStrings) {
+    for (Utf8Map const& m : utf8map) {
+      for (string const& s :
+           std::array<string, 3>{ts + m.str, m.str + ts, ts + m.str + ts}) {
+        testSequence({s.Data(), s.Size()});
+      }
     }
+  }
 }
 
 rune runtimeDecodeRune(string_view s) {
-    auto [r, size] = DecodeRuneInString(std::move(s));
-    return r;
+  auto [r, size] = DecodeRuneInString(std::move(s));
+  return r;
 }
 
 TEST(utf8, TestDecodeInvalidSequence) {
-    for (string const& str : invalidSequenceTests) {
-        span<uint8 const> const b{str.Data(),
-                                  str.Size()};
-        auto const [r1, size1] = DecodeRune(b);
-        if (rune want = kRuneError; r1 != want) {
-            FAIL() << "DecodeRune(" << str << " = " << r1 << ", want " << want;
-            return;
-        }
-        string_view const s{str.Data(),
-                            str.Size()};
-        auto const [r2, size2] = DecodeRuneInString(s);
-        if (rune want = kRuneError; r2 != want) {
-            FAIL() << "DecodeRune(" << str << " = " << r2 << ", want " << want;
-            return;
-        }
-        if (r1 != r2) {
-            FAIL() << "DecodeRune(" << std::string{s.begin(), s.end()}
-                   << ") = " << r1 << " mismatch with DecodeRuneInString("
-                   << std::string{s.begin(), s.end()} << ") = " << r2;
-            return;
-        }
-        rune r3 = runtimeDecodeRune(s);
-        if (r2 != r3) {
-            FAIL() << "DecodeRune(" << std::string{s.begin(), s.end()}
-                   << ") = " << r2 << " mismatch with runtimeDecodeRune("
-                   << std::string{s.begin(), s.end()} << ") = " << r3;
-            return;
-        }
+  for (string const& str : invalidSequenceTests) {
+    span<uint8 const> const b{str.Data(), str.Size()};
+    auto const [r1, size1] = DecodeRune(b);
+    if (rune want = kRuneError; r1 != want) {
+      FAIL() << "DecodeRune(" << str << " = " << r1 << ", want " << want;
+      return;
     }
+    string_view const s{str.Data(), str.Size()};
+    auto const [r2, size2] = DecodeRuneInString(s);
+    if (rune want = kRuneError; r2 != want) {
+      FAIL() << "DecodeRune(" << str << " = " << r2 << ", want " << want;
+      return;
+    }
+    if (r1 != r2) {
+      FAIL() << "DecodeRune(" << std::string{s.begin(), s.end()} << ") = " << r1
+             << " mismatch with DecodeRuneInString("
+             << std::string{s.begin(), s.end()} << ") = " << r2;
+      return;
+    }
+    rune r3 = runtimeDecodeRune(s);
+    if (r2 != r3) {
+      FAIL() << "DecodeRune(" << std::string{s.begin(), s.end()} << ") = " << r2
+             << " mismatch with runtimeDecodeRune("
+             << std::string{s.begin(), s.end()} << ") = " << r3;
+      return;
+    }
+  }
 }
 
 // Check that negative runes encode as U+FFFD.
 TEST(utf8, TestNegativeRune) {
-    std::array<uint8, kUTFMax> errorbuf_array;
-    std::array<uint8, kUTFMax> buf_array;
+  std::array<uint8, kUTFMax> errorbuf_array;
+  std::array<uint8, kUTFMax> buf_array;
 
-    span<uint8 const> errorbuf{
-        errorbuf_array.data(),
-        static_cast<uint64>(EncodeRune(
-            {errorbuf_array.data(), errorbuf_array.size()}, kRuneError))};
-    span<uint8 const> buf{buf_array.data(),
-                          static_cast<uint64>(EncodeRune(
-                              {buf_array.data(), buf_array.size()}, -1))};
+  span<uint8 const> errorbuf{
+      errorbuf_array.data(),
+      static_cast<uint64>(EncodeRune(
+          {errorbuf_array.data(), errorbuf_array.size()}, kRuneError))};
+  span<uint8 const> buf{buf_array.data(),
+                        static_cast<uint64>(EncodeRune(
+                            {buf_array.data(), buf_array.size()}, -1))};
 
-    if (errorbuf != buf) {
-        FAIL() << "incorrect encodeing for rune -1";
-    }
+  if (errorbuf != buf) {
+    FAIL() << "incorrect encodeing for rune -1";
+  }
 }
 
 TEST(utf8, TestRuneCount) {
-    for (RuneCountTest const& tt : runecounttests) {
-        if (int64 out = RuneCountInString(
-                {reinterpret_cast<uint8 const*>(tt.in.data()), tt.in.size()});
-            out != tt.out) {
-            FAIL() << "RuneCountInString(" << tt.in << ") = " << out
-                   << ", want " << tt.out;
-        }
-        if (int64 out = RuneCount(
-                {reinterpret_cast<uint8 const*>(tt.in.data()), tt.in.size()});
-            out != tt.out) {
-            FAIL() << "RuneCount(" << tt.in << ") = " << out << ", want "
-                   << tt.out;
-        }
+  for (RuneCountTest const& tt : runecounttests) {
+    if (int64 out = RuneCountInString(
+            {reinterpret_cast<uint8 const*>(tt.in.data()), tt.in.size()});
+        out != tt.out) {
+      FAIL() << "RuneCountInString(" << tt.in << ") = " << out << ", want "
+             << tt.out;
     }
+    if (int64 out = RuneCount(
+            {reinterpret_cast<uint8 const*>(tt.in.data()), tt.in.size()});
+        out != tt.out) {
+      FAIL() << "RuneCount(" << tt.in << ") = " << out << ", want " << tt.out;
+    }
+  }
 }
 
 TEST(utf8, TestRuneLen) {
-    for (RuneLenTest const& tt : runelentests) {
-        if (int8 size = RuneLen(tt.r); size != tt.size) {
-            FAIL() << "RuneLen(" << tt.r << ") = " << size << ", want "
-                   << tt.size;
-        }
+  for (RuneLenTest const& tt : runelentests) {
+    if (int8 size = RuneLen(tt.r); size != tt.size) {
+      FAIL() << "RuneLen(" << tt.r << ") = " << size << ", want " << tt.size;
     }
+  }
 }
 
 TEST(utf8, TestValid) {
-    for (ValidTest const& tt : validTests) {
-        if (Valid({reinterpret_cast<uint8 const*>(tt.in.data()),
-                   tt.in.size()}) != tt.out) {
-            FAIL() << "Valid(" << tt.in << ") = " << !tt.out << ", want "
-                   << tt.out;
-        }
-        if (ValidString({reinterpret_cast<uint8 const*>(tt.in.data()),
-                         tt.in.size()}) != tt.out) {
-            FAIL() << "ValidString(" << tt.in << ") = " << !tt.out << ", want "
-                   << tt.out;
-        }
+  for (ValidTest const& tt : validTests) {
+    if (Valid({reinterpret_cast<uint8 const*>(tt.in.data()), tt.in.size()}) !=
+        tt.out) {
+      FAIL() << "Valid(" << tt.in << ") = " << !tt.out << ", want " << tt.out;
     }
+    if (ValidString({reinterpret_cast<uint8 const*>(tt.in.data()),
+                     tt.in.size()}) != tt.out) {
+      FAIL() << "ValidString(" << tt.in << ") = " << !tt.out << ", want "
+             << tt.out;
+    }
+  }
 }
 
 TEST(utf8, TestValidRune) {
-    for (ValidRuneTest const& tt : validrunetests) {
-        if (bool ok = ValidRune(tt.r); ok != tt.ok) {
-            FAIL() << "ValidRune(" << tt.r << ") = " << ok << ", want "
-                   << tt.ok;
-        }
+  for (ValidRuneTest const& tt : validrunetests) {
+    if (bool ok = ValidRune(tt.r); ok != tt.ok) {
+      FAIL() << "ValidRune(" << tt.r << ") = " << ok << ", want " << tt.ok;
     }
+  }
 }
 
 }  // namespace utf8

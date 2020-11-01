@@ -35,50 +35,50 @@ using std::pair;
 using rune = uint32;
 
 class string {
-   public:
-    using traits_type = std::char_traits<uint8>;
-    using value_type = uint8;
-    using pointer = uint8*;
-    using const_pointer = const uint8*;
-    using reference = uint8&;
-    using const_reference = const uint8&;
-    using const_iterator = const uint8*;
-    using iterator = const_iterator;
-    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    using reverse_iterator = const_reverse_iterator;
-    using size_type = size_t;
-    using difference_type = std::ptrdiff_t;
+ public:
+  using traits_type = std::char_traits<uint8>;
+  using value_type = uint8;
+  using pointer = uint8*;
+  using const_pointer = const uint8*;
+  using reference = uint8&;
+  using const_reference = const uint8&;
+  using const_iterator = const uint8*;
+  using iterator = const_iterator;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+  using reverse_iterator = const_reverse_iterator;
+  using size_type = size_t;
+  using difference_type = std::ptrdiff_t;
 
-    constexpr string();
-    constexpr string(uint64 count, uint8 ch);
-    constexpr string(uint8 const*);
-    constexpr string(char const*);
-    constexpr string(uint8 const* s, uint64 count);
-    constexpr string(std::initializer_list<uint8> iList);
+  constexpr string();
+  constexpr string(uint64 count, uint8 ch);
+  constexpr string(uint8 const*);
+  constexpr string(char const*);
+  constexpr string(uint8 const* s, uint64 count);
+  constexpr string(std::initializer_list<uint8> iList);
 
-    constexpr string(string const&) = delete;
-    constexpr string& operator=(string const&) = delete;
+  constexpr string(string const&) = delete;
+  constexpr string& operator=(string const&) = delete;
 
-    constexpr string(string&&) noexcept;
-    constexpr string& operator=(string&&) noexcept;
+  constexpr string(string&&) noexcept;
+  constexpr string& operator=(string&&) noexcept;
 
-    constexpr ~string();
+  constexpr ~string();
 
-    constexpr const_iterator begin() const noexcept { return data_; }
-    constexpr const_iterator end() const noexcept { return data_ + size_; }
+  constexpr const_iterator begin() const noexcept { return data_; }
+  constexpr const_iterator end() const noexcept { return data_ + size_; }
 
-    constexpr string Clone();
+  constexpr string Clone();
 
-    constexpr uint64 Size() const;
-    constexpr uint8 const* Data() const;
+  constexpr uint64 Size() const;
+  constexpr uint8 const* Data() const;
 
-    constexpr string operator+(string const& s) const;
+  constexpr string operator+(string const& s) const;
 
-   private:
-    constexpr string(uint8 const* data, uint64 size, std::nullptr_t);
+ private:
+  constexpr string(uint8 const* data, uint64 size, std::nullptr_t);
 
-    uint8 const* data_;
-    uint64 size_;
+  uint8 const* data_;
+  uint64 size_;
 };
 
 using string_view = std::basic_string_view<uint8 const>;
