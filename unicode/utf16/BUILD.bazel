@@ -1,0 +1,42 @@
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "utf16",
+    srcs = [
+        "utf16.cpp",
+    ],
+    hdrs = [
+        "utf16.hpp",
+        "utf16_impl.hpp",
+    ],
+    visibility = [
+        "//visibility:public",
+    ],
+    deps = [
+        "@com_pblaberge_base//:base",
+    ],
+)
+
+cc_test(
+    name = "utf16_test",
+    srcs = [
+        "utf16_test.cpp",
+    ],
+    deps = [
+        ":utf16",
+        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "utf16_benchmark",
+    srcs = [
+        "utf16_benchmark.cpp",
+    ],
+    tags = ["benchmark"],
+    deps = [
+        ":utf16",
+        "@com_github_google_benchmark//:benchmark_main",
+    ],
+)
