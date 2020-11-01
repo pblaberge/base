@@ -118,17 +118,17 @@ std::array<string, 37> invalidSequenceTests = {{
 }};
 
 struct RuneCountTest {
-  std::string_view in;
+  string_view in;
   int32 out;
 };
 
 std::array<RuneCountTest, 6> runecounttests = {{
-    {"abcd", 4},
-    {"☺☻☹", 3},
-    {"1,2,3,4", 7},
-    {{"\xe2\x00", 2}, 2},
-    {{"\xe2\x80", 2}, 2},
-    {{"a\xe2\x80", 3}, 3},
+    {reinterpret_cast<const uint8_t*>("abcd"), 4},
+    {reinterpret_cast<const uint8_t*>("☺☻☹"), 3},
+    {reinterpret_cast<const uint8_t*>("1,2,3,4"), 7},
+    {{reinterpret_cast<const uint8_t*>("\xe2\x00"), 2}, 2},
+    {{reinterpret_cast<const uint8_t*>("\xe2\x80"), 2}, 2},
+    {{reinterpret_cast<const uint8_t*>("a\xe2\x80"), 3}, 3},
 }};
 
 struct RuneLenTest {
@@ -150,32 +150,38 @@ std::array<RuneLenTest, 10> runelentests = {{
 }};
 
 struct ValidTest {
-  std::string_view in;
+  string_view in;
   bool out;
 };
 
-std::array<char, 2> valid_bytes_0{66, static_cast<char>(250)};
-std::array<char, 3> valid_bytes_1{66, static_cast<char>(250), 67};
+std::array<uint8_t, 2> valid_bytes_0{66U, 250U};
+std::array<uint8_t, 3> valid_bytes_1{66U, 250U, 67U};
 
 std::array<ValidTest, 18> validTests = {{
-    {"", true},
-    {"a", true},
-    {"abc", true},
-    {"Ж", true},
-    {"ЖЖ", true},
-    {"брэд-ЛГТМ", true},
-    {"☺☻☹", true},
-    {"aa\xe2", false},
+    {reinterpret_cast<const uint8_t*>(""), true},
+    {reinterpret_cast<const uint8_t*>("a"), true},
+    {reinterpret_cast<const uint8_t*>("abc"), true},
+    {reinterpret_cast<const uint8_t*>("Ж"), true},
+    {reinterpret_cast<const uint8_t*>("ЖЖ"), true},
+    {reinterpret_cast<const uint8_t*>("брэд-ЛГТМ"), true},
+    {reinterpret_cast<const uint8_t*>("☺☻☹"), true},
+    {reinterpret_cast<const uint8_t*>("aa\xe2"), false},
     {{valid_bytes_0.data(), 2}, false},
     {{valid_bytes_1.data(), 3}, false},
-    {"a\uFFFDb", true},
-    {"\xF4\x8F\xBF\xBF", true},       // U+10FFFF
-    {"\xF4\x90\x80\x80", false},      // U+10FFFF+1; out of range
-    {"\xF7\xBF\xBF\xBF", false},      // 0x1FFFFF; out of range
-    {"\xFB\xBF\xBF\xBF\xBF", false},  // 0x3FFFFFF; out of range
-    {"\xc0\x80", false},              // U+0000 encoded in two bytes: incorrect
-    {"\xed\xa0\x80", false},          // U+D800 high surrogate (sic)
-    {"\xed\xbf\xbf", false},          // U+DFFF low surrogate (sic)
+    {reinterpret_cast<const uint8_t*>("a\uFFFDb"), true},
+    {reinterpret_cast<const uint8_t*>("\xF4\x8F\xBF\xBF"), true},  // U+10FFFF
+    {reinterpret_cast<const uint8_t*>("\xF4\x90\x80\x80"),
+     false},  // U+10FFFF+1; out of range
+    {reinterpret_cast<const uint8_t*>("\xF7\xBF\xBF\xBF"),
+     false},  // 0x1FFFFF; out of range
+    {reinterpret_cast<const uint8_t*>("\xFB\xBF\xBF\xBF\xBF"),
+     false},  // 0x3FFFFFF; out of range
+    {reinterpret_cast<const uint8_t*>("\xc0\x80"),
+     false},  // U+0000 encoded in two bytes: incorrect
+    {reinterpret_cast<const uint8_t*>("\xed\xa0\x80"),
+     false},  // U+D800 high surrogate (sic)
+    {reinterpret_cast<const uint8_t*>("\xed\xbf\xbf"),
+     false},  // U+DFFF low surrogate (sic)
 }};
 
 struct ValidRuneTest {
@@ -210,14 +216,12 @@ TEST(utf8, TestFullRune) {
              << ") = false, want true";
     }
   }
-  for (std::string const& str : std::array<std::string, 2>{"\xc0", "\xc1"}) {
-    span<uint8 const> const b{reinterpret_cast<uint8 const*>(str.c_str()),
-                              str.size()};
+  for (string const& str : std::array<string, 2>{"\xc0", "\xc1"}) {
+    span<uint8 const> const b{str.Data(), str.Size()};
     if (!FullRune(b)) {
       FAIL() << "FullRune(" << str << ") = false, want true";
     }
-    string_view const s{reinterpret_cast<uint8 const*>(str.c_str()),
-                        str.size()};
+    string_view const s{str.Data(), str.Size()};
     if (!FullRuneInString(s)) {
       FAIL() << "FullRuneInString(" << str << ") = false, want true";
     }
@@ -369,21 +373,20 @@ void testSequence(string_view s) {
   for (si = s.size(); si > 0;) {
     auto [r1, size1] = DecodeLastRune(b.subspan(0, si));
     if (r1 != index[j].r) {
-      FAIL() << "DecodeLastRune(" << std::string{s.begin(), s.end()} << ", "
-             << si << ") = " << r1 << ", want " << index[j].r;
+      FAIL() << "DecodeLastRune(" << s << ", " << si << ") = " << r1
+             << ", want " << index[j].r;
       return;
     }
     si -= size1;
     if (si != index[j].index) {
-      FAIL() << "DecodeLastRune(" << std::string{s.begin(), s.end()}
-             << ") index mismatch at " << si << ", want " << index[j].index;
+      FAIL() << "DecodeLastRune(" << s << ") index mismatch at " << si
+             << ", want " << index[j].index;
       return;
     }
     --j;
   }
   if (si != 0) {
-    FAIL() << "DecodeLastRune(" << std::string{s.begin(), s.end()}
-           << ") finished at " << si << ", not 0";
+    FAIL() << "DecodeLastRune(" << s << ") finished at " << si << ", not 0";
   }
 }
 
@@ -418,16 +421,14 @@ TEST(utf8, TestDecodeInvalidSequence) {
       return;
     }
     if (r1 != r2) {
-      FAIL() << "DecodeRune(" << std::string{s.begin(), s.end()} << ") = " << r1
-             << " mismatch with DecodeRuneInString("
-             << std::string{s.begin(), s.end()} << ") = " << r2;
+      FAIL() << "DecodeRune(" << s << ") = " << r1
+             << " mismatch with DecodeRuneInString(" << s << ") = " << r2;
       return;
     }
     rune r3 = runtimeDecodeRune(s);
     if (r2 != r3) {
-      FAIL() << "DecodeRune(" << std::string{s.begin(), s.end()} << ") = " << r2
-             << " mismatch with runtimeDecodeRune("
-             << std::string{s.begin(), s.end()} << ") = " << r3;
+      FAIL() << "DecodeRune(" << s << ") = " << r2
+             << " mismatch with runtimeDecodeRune(" << s << ") = " << r3;
       return;
     }
   }
