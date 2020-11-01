@@ -9,6 +9,7 @@ cc_library(
     ],
     srcs = [
         "types_impl.hpp",
+        "types.cpp",
     ],
     deps = [
         "@com_google_absl//absl/types:span"

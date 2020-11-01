@@ -94,11 +94,7 @@ constexpr string string::operator+(string const& s) const {
   return {new_data, new_size, nullptr};
 }
 
-std::ostream& operator<<(std::ostream& out, string const& s) {
-  for (uint64 i = 0; i < s.Size(); ++i) {
-    out << static_cast<char>(*(s.Data() + i));
-  }
-  return out;
-}
-
 }  // namespace rflx
+
+std::ostream& operator<<(std::ostream& out, rflx::string const& s);
+std::ostream& operator<<(std::ostream& out, rflx::string_view const& s);
