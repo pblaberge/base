@@ -1,6 +1,7 @@
 #include "unicode/utf8/utf8.hpp"
 
 #include "gtest/gtest.h"
+#include "types.hpp"
 
 namespace rflx {
 namespace unicode {
@@ -8,7 +9,7 @@ namespace utf8 {
 
 struct Utf8Map {
   rune r;
-  string str;
+  string_literal str;
 };
 
 std::array<Utf8Map const, 32> const utf8map = {{
@@ -51,7 +52,7 @@ Utf8Map surrogateMap[] = {
     {0xdfff, "\xed\xbf\xbf"},  // surrogate max decodes to (RuneError, 1)
 };
 
-string testStrings[] = {
+string_literal testStrings[] = {
     "",
     "abcd",
     "☺☻☹",
@@ -61,7 +62,7 @@ string testStrings[] = {
     "\x80\x80\x80\x80",
 };
 
-std::array<string, 37> invalidSequenceTests = {{
+std::array<string_literal, 37> invalidSequenceTests = {{
     "\xed\xa0\x80\x80",  // surrogate min
     "\xed\xbf\xbf\x80",  // surrogate max
 
@@ -123,12 +124,12 @@ struct RuneCountTest {
 };
 
 std::array<RuneCountTest, 6> runecounttests = {{
-    {reinterpret_cast<const uint8_t*>("abcd"), 4},
-    {reinterpret_cast<const uint8_t*>("☺☻☹"), 3},
-    {reinterpret_cast<const uint8_t*>("1,2,3,4"), 7},
-    {{reinterpret_cast<const uint8_t*>("\xe2\x00"), 2}, 2},
-    {{reinterpret_cast<const uint8_t*>("\xe2\x80"), 2}, 2},
-    {{reinterpret_cast<const uint8_t*>("a\xe2\x80"), 3}, 3},
+    {reinterpret_cast<const uint8*>("abcd"), 4},
+    {reinterpret_cast<const uint8*>("☺☻☹"), 3},
+    {reinterpret_cast<const uint8*>("1,2,3,4"), 7},
+    {{reinterpret_cast<const uint8*>("\xe2\x00"), 2}, 2},
+    {{reinterpret_cast<const uint8*>("\xe2\x80"), 2}, 2},
+    {{reinterpret_cast<const uint8*>("a\xe2\x80"), 3}, 3},
 }};
 
 struct RuneLenTest {
@@ -216,7 +217,7 @@ TEST(utf8, TestFullRune) {
              << ") = false, want true";
     }
   }
-  for (string const& str : std::array<string, 2>{"\xc0", "\xc1"}) {
+  for (string const& str : std::array<string_literal, 2>{"\xc0", "\xc1"}) {
     span<uint8 const> const b{str.Data(), str.Size()};
     if (!FullRune(b)) {
       FAIL() << "FullRune(" << str << ") = false, want true";
@@ -257,9 +258,9 @@ TEST(utf8, TestDecodeRune) {
       {
         string_view const s{m.str.Data(), m.str.Size()};
         auto const [r, size] = DecodeRuneInString(s);
-        if (r != m.r || size != s.size()) {
+        if (r != m.r || size != s.Size()) {
           FAIL() << "DecodeRuneInString(" << m.str << " = " << r << ", " << size
-                 << " want " << r << ", " << s.size();
+                 << " want " << r << ", " << s.Size();
         }
       }
     }
@@ -280,7 +281,7 @@ TEST(utf8, TestDecodeRune) {
       auto const [r, size] = DecodeRuneInString(s);
       if (r != m.r || size != b.size() - 1) {
         FAIL() << "DecodeRuneInString(" << m.str << " = " << r << ", " << size
-               << " want " << r << ", " << s.size();
+               << " want " << r << ", " << s.Size();
       }
     }
 
@@ -355,22 +356,22 @@ void testSequence(string_view s) {
     rune r;
   };
 
-  std::vector<info> index{s.size()};
-  span<uint8 const> const b{reinterpret_cast<uint8 const*>(s.data()), s.size()};
+  std::vector<info> index{s.Size()};
+  span<uint8 const> const b{reinterpret_cast<uint8 const*>(s.Data()), s.Size()};
   int32 si = 0;
   int32 j = 0;
 
   string_view s0 = s;
 
-  while (!s0.empty()) {
-    auto [r, i] = DecodeRune(s0);
+  while (!s0.Empty()) {
+    auto [r, i] = DecodeRuneInString(s0);
     index[j] = info{si, r};
     si += i;
     ++j;
-    s0 = s0.substr(i);
+    s0 = s0.Substr(i);
   }
   --j;
-  for (si = s.size(); si > 0;) {
+  for (si = s.Size(); si > 0;) {
     auto [r1, size1] = DecodeLastRune(b.subspan(0, si));
     if (r1 != index[j].r) {
       FAIL() << "DecodeLastRune(" << s << ", " << si << ") = " << r1
@@ -455,13 +456,13 @@ TEST(utf8, TestNegativeRune) {
 TEST(utf8, TestRuneCount) {
   for (RuneCountTest const& tt : runecounttests) {
     if (int64 out = RuneCountInString(
-            {reinterpret_cast<uint8 const*>(tt.in.data()), tt.in.size()});
+            {reinterpret_cast<uint8 const*>(tt.in.Data()), tt.in.Size()});
         out != tt.out) {
       FAIL() << "RuneCountInString(" << tt.in << ") = " << out << ", want "
              << tt.out;
     }
     if (int64 out = RuneCount(
-            {reinterpret_cast<uint8 const*>(tt.in.data()), tt.in.size()});
+            {reinterpret_cast<uint8 const*>(tt.in.Data()), tt.in.Size()});
         out != tt.out) {
       FAIL() << "RuneCount(" << tt.in << ") = " << out << ", want " << tt.out;
     }
@@ -478,12 +479,12 @@ TEST(utf8, TestRuneLen) {
 
 TEST(utf8, TestValid) {
   for (ValidTest const& tt : validTests) {
-    if (Valid({reinterpret_cast<uint8 const*>(tt.in.data()), tt.in.size()}) !=
+    if (Valid({reinterpret_cast<uint8 const*>(tt.in.Data()), tt.in.Size()}) !=
         tt.out) {
       FAIL() << "Valid(" << tt.in << ") = " << !tt.out << ", want " << tt.out;
     }
-    if (ValidString({reinterpret_cast<uint8 const*>(tt.in.data()),
-                     tt.in.size()}) != tt.out) {
+    if (ValidString({reinterpret_cast<uint8 const*>(tt.in.Data()),
+                     tt.in.Size()}) != tt.out) {
       FAIL() << "ValidString(" << tt.in << ") = " << !tt.out << ", want "
              << tt.out;
     }

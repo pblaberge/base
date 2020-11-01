@@ -8,8 +8,8 @@ std::ostream& operator<<(std::ostream& out, rflx::string const& s) {
 }
 
 std::ostream& operator<<(std::ostream& out, rflx::string_view const& s) {
-  for (rflx::uint64 i = 0; i < s.size(); ++i) {
-    out << static_cast<char>(*(s.data() + i));
+  for (rflx::uint64 i = 0; i < s.size_; ++i) {
+    out << static_cast<char>(*(s.data_ + i));
   }
   return out;
 }

@@ -4,14 +4,15 @@ package(default_visibility = ["//visibility:public"])
 
 cc_library(
     name = "base",
+    srcs = [
+        "types.cpp",
+        "types_impl.hpp",
+    ],
     hdrs = [
         "types.hpp",
     ],
-    srcs = [
-        "types_impl.hpp",
-        "types.cpp",
-    ],
     deps = [
-        "@com_google_absl//absl/types:span"
-    ]
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/types:span",
+    ],
 )

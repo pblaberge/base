@@ -22,7 +22,8 @@ constexpr string::string(uint64 count, uint8 ch) : size_{count} {
   data_ = rv;
 }
 
-constexpr string::string(const char* s) : string((uint8 const*)(s)) {}
+constexpr string_literal::string_literal(const char* s)
+    : string((uint8 const*)(s)) {}
 
 constexpr string::string(uint8 const* s)
     : string(s, __builtin_strlen((char*)(s))) {}
@@ -94,7 +95,44 @@ constexpr string string::operator+(string const& s) const {
   return {new_data, new_size, nullptr};
 }
 
+constexpr string_view::string_view() : data_{nullptr}, size_{0} {}
+
+constexpr string_view::string_view(string_view const& o) = default;
+constexpr string_view& string_view::operator=(string_view const& o) = default;
+
+constexpr string_view::string_view(string_view&& o) = default;
+constexpr string_view& string_view::operator=(string_view&& o) = default;
+
+constexpr string_view::~string_view() = default;
+
+constexpr string_view::string_view(uint8 const* data, uint64 size)
+    : data_{data}, size_{size} {}
+constexpr string_view::string_view(uint8 const* data)
+    : string_view(data, __builtin_strlen((char const*)(data))) {}
+
+constexpr bool string_view::Empty() const { return size_ == 0; }
+constexpr uint64 string_view::Size() const { return size_; }
+constexpr uint8 const* string_view::Data() const { return data_; }
+
+constexpr string_view string_view::Substr(uint64 pos) const {
+  if (pos >= size_) {
+    return {};
+  }
+  return Substr(pos, size_ - pos);
+}
+
+constexpr string_view string_view::Substr(uint64 pos, uint64 size) const {
+  if (pos >= size_) {
+    return {};
+  }
+
+  if (pos + size > size_) {
+    return {};
+  }
+
+  return {data_ + pos, size};
+}
+
 }  // namespace rflx
 
 std::ostream& operator<<(std::ostream& out, rflx::string const& s);
-std::ostream& operator<<(std::ostream& out, rflx::string_view const& s);

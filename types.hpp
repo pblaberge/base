@@ -10,7 +10,14 @@
 #include <utility>
 #include <vector>
 
+#include "absl/container/flat_hash_map.h"
 #include "absl/types/span.h"
+
+namespace rflx {
+class string_view;
+}
+
+std::ostream& operator<<(std::ostream& out, rflx::string_view const& s);
 
 namespace rflx {
 
@@ -29,6 +36,9 @@ using span = absl::Span<T>;
 
 template <typename T>
 using slice = std::vector<T>;
+
+template <class K, class V>
+using map = absl::flat_hash_map<K, V>;
 
 using std::pair;
 
@@ -52,7 +62,6 @@ class string {
   constexpr string();
   constexpr string(uint64 count, uint8 ch);
   constexpr string(uint8 const*);
-  constexpr string(char const*);
   constexpr string(uint8 const* s, uint64 count);
   constexpr string(std::initializer_list<uint8> iList);
 
@@ -81,7 +90,39 @@ class string {
   uint64 size_;
 };
 
-using string_view = std::basic_string_view<uint8 const>;
+class string_literal : public string {
+ public:
+  using string::string;
+
+  constexpr string_literal(const char*);
+};
+
+class string_view {
+ public:
+  constexpr string_view();
+  constexpr string_view(uint8 const* data, uint64 size);
+  constexpr string_view(uint8 const* data);
+
+  constexpr string_view(string_view const& o);
+  constexpr string_view& operator=(string_view const& o);
+
+  constexpr string_view(string_view&& o);
+  constexpr string_view& operator=(string_view&& o);
+
+  constexpr ~string_view();
+
+  constexpr bool Empty() const;
+  constexpr uint64 Size() const;
+  constexpr uint8 const* Data() const;
+
+  constexpr string_view Substr(uint64 pos) const;
+  constexpr string_view Substr(uint64 pos, uint64 size) const;
+
+ private:
+  friend std::ostream& ::operator<<(std::ostream& out, string_view const& s);
+  uint8 const* data_;
+  uint64 size_;
+};
 
 }  // namespace rflx
 

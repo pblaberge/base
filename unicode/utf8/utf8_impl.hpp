@@ -73,7 +73,7 @@ constexpr bool FullRune(span<uint8 const> p) {
 }
 
 constexpr bool FullRuneInString(string_view p) {
-  return FullRune({p.data(), p.size()});
+  return FullRune({p.Data(), p.Size()});
 }
 
 constexpr pair<rune, int8> DecodeRune(span<uint8 const> p) {
@@ -137,7 +137,7 @@ constexpr pair<rune, int8> DecodeRune(span<uint8 const> p) {
 }
 
 constexpr pair<rune, int8> DecodeRuneInString(string_view string) {
-  return DecodeRune({string.data(), string.size()});
+  return DecodeRune({string.Data(), string.Size()});
 }
 
 constexpr pair<rune, int8> DecodeLastRune(span<uint8 const> p) {
@@ -178,7 +178,7 @@ constexpr pair<rune, int8> DecodeLastRune(span<uint8 const> p) {
 }
 
 constexpr pair<rune, int8> DecodeLastRuneInString(string_view s) {
-  return DecodeLastRune({s.data(), s.size()});
+  return DecodeLastRune({s.Data(), s.Size()});
 }
 
 constexpr int8 RuneLen(rune r) {
@@ -273,7 +273,7 @@ constexpr int64 RuneCount(span<uint8 const> p) {
 }
 
 constexpr int64 RuneCountInString(string_view s) {
-  return RuneCount({s.data(), s.size()});
+  return RuneCount({s.Data(), s.Size()});
 }
 
 constexpr bool RuneStart(uint8 b) { return (b & 0xC0) != 0x80; }
@@ -318,7 +318,7 @@ constexpr bool Valid(span<uint8 const> p) {
 }
 
 constexpr bool ValidString(string_view s) {
-  return Valid({s.data(), s.size()});
+  return Valid({s.Data(), s.Size()});
 }
 
 constexpr bool ValidRune(rune r) {
