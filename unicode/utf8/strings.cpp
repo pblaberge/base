@@ -1,4 +1,4 @@
-#include "types.hpp"
+#include "unicode/utf8/strings.hpp"
 
 std::ostream& operator<<(std::ostream& out, rflx::string const& s) {
   for (rflx::uint64 i = 0; i < s.Size(); ++i) {

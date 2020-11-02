@@ -3,11 +3,14 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 cc_library(
     name = "utf8",
     srcs = [
+        "strings.cpp",
+        "strings_impl.hpp",
         "utf8.cpp",
+        "utf8_impl.hpp",
     ],
     hdrs = [
+        "strings.hpp",
         "utf8.hpp",
-        "utf8_impl.hpp",
     ],
     visibility = [
         "//visibility:public",

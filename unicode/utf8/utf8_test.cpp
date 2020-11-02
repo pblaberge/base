@@ -12,7 +12,7 @@ struct Utf8Map {
   string_literal str;
 };
 
-std::array<Utf8Map const, 32> const utf8map = {{
+array<Utf8Map const, 32> const utf8map = {{
     {0x0000, {0x00, 0x00}},
     {0x0001, "\x01"},
     {0x007e, "\x7e"},
@@ -62,7 +62,7 @@ string_literal testStrings[] = {
     "\x80\x80\x80\x80",
 };
 
-std::array<string_literal, 37> invalidSequenceTests = {{
+array<string_literal, 37> invalidSequenceTests = {{
     "\xed\xa0\x80\x80",  // surrogate min
     "\xed\xbf\xbf\x80",  // surrogate max
 
@@ -123,7 +123,7 @@ struct RuneCountTest {
   int32 out;
 };
 
-std::array<RuneCountTest, 6> runecounttests = {{
+array<RuneCountTest, 6> runecounttests = {{
     {reinterpret_cast<const uint8*>("abcd"), 4},
     {reinterpret_cast<const uint8*>("☺☻☹"), 3},
     {reinterpret_cast<const uint8*>("1,2,3,4"), 7},
@@ -137,7 +137,7 @@ struct RuneLenTest {
   int32 size;
 };
 
-std::array<RuneLenTest, 10> runelentests = {{
+array<RuneLenTest, 10> runelentests = {{
     {0, 1},
     {0x65, 1},
     {0xe9, 2},
@@ -155,10 +155,10 @@ struct ValidTest {
   bool out;
 };
 
-std::array<uint8_t, 2> valid_bytes_0{66U, 250U};
-std::array<uint8_t, 3> valid_bytes_1{66U, 250U, 67U};
+array<uint8_t, 2> valid_bytes_0{66U, 250U};
+array<uint8_t, 3> valid_bytes_1{66U, 250U, 67U};
 
-std::array<ValidTest, 18> validTests = {{
+array<ValidTest, 18> validTests = {{
     {reinterpret_cast<const uint8_t*>(""), true},
     {reinterpret_cast<const uint8_t*>("a"), true},
     {reinterpret_cast<const uint8_t*>("abc"), true},
@@ -190,7 +190,7 @@ struct ValidRuneTest {
   bool ok;
 };
 
-std::array<ValidRuneTest, 12> validrunetests = {{
+array<ValidRuneTest, 12> validrunetests = {{
     {0, true},
     {0x65, true},
     {0xE9, true},
@@ -217,7 +217,7 @@ TEST(utf8, TestFullRune) {
              << ") = false, want true";
     }
   }
-  for (string const& str : std::array<string_literal, 2>{"\xc0", "\xc1"}) {
+  for (string const& str : array<string_literal, 2>{"\xc0", "\xc1"}) {
     span<uint8 const> const b{str.Data(), str.Size()};
     if (!FullRune(b)) {
       FAIL() << "FullRune(" << str << ") = false, want true";
@@ -233,7 +233,7 @@ TEST(utf8, TestEncodeRune) {
   for (uint64 i = 0; i < utf8map.size(); ++i) {
     Utf8Map const& m = utf8map[i];
     span<uint8 const> const b{m.str.Data(), m.str.Size()};
-    std::array<uint8, 10> buf;
+    array<uint8, 10> buf;
     int32 const n = EncodeRune({buf.data(), buf.size()}, m.r);
     span<uint8> b1{buf.data(), static_cast<uint64>(n)};
     ASSERT_EQ(b.size(), b1.size());
@@ -285,7 +285,7 @@ TEST(utf8, TestDecodeRune) {
       }
     }
 
-    std::vector<uint8> b{m.str.begin(), m.str.end()};
+    slice<uint8> b{m.str.Data(), m.str.Data() + m.str.Size()};
     // make sure missing bytes fail
     int8 wantsize = 1;
     if (wantsize >= b.size()) {
@@ -356,7 +356,7 @@ void testSequence(string_view s) {
     rune r;
   };
 
-  std::vector<info> index{s.Size()};
+  slice<info> index{s.Size()};
   span<uint8 const> const b{reinterpret_cast<uint8 const*>(s.Data()), s.Size()};
   int32 si = 0;
   int32 j = 0;
@@ -395,7 +395,7 @@ TEST(utf8, TestSequencing) {
   for (string const& ts : testStrings) {
     for (Utf8Map const& m : utf8map) {
       for (string const& s :
-           std::array<string, 3>{ts + m.str, m.str + ts, ts + m.str + ts}) {
+           array<string, 3>{ts + m.str, m.str + ts, ts + m.str + ts}) {
         testSequence({s.Data(), s.Size()});
       }
     }
@@ -437,8 +437,8 @@ TEST(utf8, TestDecodeInvalidSequence) {
 
 // Check that negative runes encode as U+FFFD.
 TEST(utf8, TestNegativeRune) {
-  std::array<uint8, kUTFMax> errorbuf_array;
-  std::array<uint8, kUTFMax> buf_array;
+  array<uint8, kUTFMax> errorbuf_array;
+  array<uint8, kUTFMax> buf_array;
 
   span<uint8 const> errorbuf{
       errorbuf_array.data(),

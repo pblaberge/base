@@ -5,19 +5,14 @@
 
 #pragma once
 
+#include <array>
 #include <iostream>
-#include <string_view>
+#include <iterator>
 #include <utility>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/types/span.h"
-
-namespace rflx {
-class string_view;
-}
-
-std::ostream& operator<<(std::ostream& out, rflx::string_view const& s);
 
 namespace rflx {
 
@@ -40,90 +35,11 @@ using slice = std::vector<T>;
 template <class K, class V>
 using map = absl::flat_hash_map<K, V>;
 
+template <class T, std::size_t N>
+using array = std::array<T, N>;
+
 using std::pair;
 
 using rune = uint32;
 
-class string {
- public:
-  using traits_type = std::char_traits<uint8>;
-  using value_type = uint8;
-  using pointer = uint8*;
-  using const_pointer = const uint8*;
-  using reference = uint8&;
-  using const_reference = const uint8&;
-  using const_iterator = const uint8*;
-  using iterator = const_iterator;
-  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-  using reverse_iterator = const_reverse_iterator;
-  using size_type = size_t;
-  using difference_type = std::ptrdiff_t;
-
-  constexpr string();
-  constexpr string(uint64 count, uint8 ch);
-  constexpr string(uint8 const*);
-  constexpr string(uint8 const* s, uint64 count);
-  constexpr string(std::initializer_list<uint8> iList);
-
-  constexpr string(string const&) = delete;
-  constexpr string& operator=(string const&) = delete;
-
-  constexpr string(string&&) noexcept;
-  constexpr string& operator=(string&&) noexcept;
-
-  constexpr ~string();
-
-  constexpr const_iterator begin() const noexcept { return data_; }
-  constexpr const_iterator end() const noexcept { return data_ + size_; }
-
-  constexpr string Clone();
-
-  constexpr uint64 Size() const;
-  constexpr uint8 const* Data() const;
-
-  constexpr string operator+(string const& s) const;
-
- private:
-  constexpr string(uint8 const* data, uint64 size, std::nullptr_t);
-
-  uint8 const* data_;
-  uint64 size_;
-};
-
-class string_literal : public string {
- public:
-  using string::string;
-
-  constexpr string_literal(const char*);
-};
-
-class string_view {
- public:
-  constexpr string_view();
-  constexpr string_view(uint8 const* data, uint64 size);
-  constexpr string_view(uint8 const* data);
-
-  constexpr string_view(string_view const& o);
-  constexpr string_view& operator=(string_view const& o);
-
-  constexpr string_view(string_view&& o);
-  constexpr string_view& operator=(string_view&& o);
-
-  constexpr ~string_view();
-
-  constexpr bool Empty() const;
-  constexpr uint64 Size() const;
-  constexpr uint8 const* Data() const;
-
-  constexpr string_view Substr(uint64 pos) const;
-  constexpr string_view Substr(uint64 pos, uint64 size) const;
-
- private:
-  friend std::ostream& ::operator<<(std::ostream& out, string_view const& s);
-  uint8 const* data_;
-  uint64 size_;
-};
-
 }  // namespace rflx
-
-#include "types_impl.hpp"
